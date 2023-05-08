@@ -4,15 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const lifeCanvas = document.getElementById("life-canvas");
   const ctx = lifeCanvas.getContext("2d");
   const changeBirthdayButton = document.getElementById("change-birthday");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text"); // Change this line
 
   changeBirthdayButton.addEventListener("click", () => {
     document.getElementById("input-container").style.display = "block";
   });
-
   const drawLife = (livedWeeks) => {
-    const width = 20;
-    const height = 20;
-    const padding = 2;
+    const width = 14;
+    const height = 14;
+    const padding = 4;
     const rows = 50;
     const columns = 80;
     let count = 0;
@@ -20,35 +21,81 @@ document.addEventListener("DOMContentLoaded", () => {
     lifeCanvas.width = columns * (width + padding) - padding;
     lifeCanvas.height = rows * (height + padding) - padding;
 
+    const borderRadius = 2;
+
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
         count++;
 
         if (count <= livedWeeks) {
-          ctx.fillStyle = "white";
+          ctx.fillStyle = "#D3D3D3";
         } else {
           ctx.fillStyle = "black";
-          ctx.strokeStyle = "white";
+          ctx.strokeStyle = "#D3D3D3";
           ctx.lineWidth = 2;
         }
 
-        ctx.fillRect(
+        ctx.beginPath();
+        ctx.moveTo(
+          j * (width + padding) + borderRadius,
+          i * (height + padding)
+        );
+        ctx.lineTo(
+          j * (width + padding) + width - borderRadius,
+          i * (height + padding)
+        );
+        ctx.quadraticCurveTo(
+          j * (width + padding) + width,
+          i * (height + padding),
+          j * (width + padding) + width,
+          i * (height + padding) + borderRadius
+        );
+        ctx.lineTo(
+          j * (width + padding) + width,
+          i * (height + padding) + height - borderRadius
+        );
+        ctx.quadraticCurveTo(
+          j * (width + padding) + width,
+          i * (height + padding) + height,
+          j * (width + padding) + width - borderRadius,
+          i * (height + padding) + height
+        );
+        ctx.lineTo(
+          j * (width + padding) + borderRadius,
+          i * (height + padding) + height
+        );
+        ctx.quadraticCurveTo(
+          j * (width + padding),
+          i * (height + padding) + height,
+          j * (width + padding),
+          i * (height + padding) + height - borderRadius
+        );
+        ctx.lineTo(
+          j * (width + padding),
+          i * (height + padding) + borderRadius
+        );
+        ctx.quadraticCurveTo(
           j * (width + padding),
           i * (height + padding),
-          width,
-          height
+          j * (width + padding) + borderRadius,
+          i * (height + padding)
         );
+        ctx.closePath();
 
-        if (count > livedWeeks) {
-          ctx.strokeRect(
-            j * (width + padding),
-            i * (height + padding),
-            width,
-            height
-          );
+        if (count <= livedWeeks) {
+          ctx.fill();
+        } else {
+          ctx.stroke();
+          ctx.fill();
         }
       }
     }
+  };
+
+  const updateProgressBar = (livedWeeks) => {
+    const percentage = (livedWeeks / 4000) * 100;
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `${Math.round(percentage)}%`;
   };
 
   const calculateWeeksSinceBirth = (birthday) => {
@@ -67,6 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const livedWeeks = calculateWeeksSinceBirth(birthday);
       drawLife(livedWeeks);
       document.getElementById("input-container").style.display = "none";
+
+      updateProgressBar(livedWeeks);
     });
   });
 
@@ -75,6 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const livedWeeks = calculateWeeksSinceBirth(birthday);
       drawLife(livedWeeks);
       document.getElementById("input-container").style.display = "none";
+
+      updateProgressBar(livedWeeks);
     } else {
       document.getElementById("input-container").style.display = "block";
     }

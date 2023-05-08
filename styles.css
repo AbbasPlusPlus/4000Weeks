@@ -58,3 +58,28 @@ button:hover {
     background-color: black;
     color: white;
 }
+
+.progress-bar-container {
+    width: 100%;
+    background-color: black;
+    border: 2px solid white;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #D3D3D3;
+    width: 0;
+    border-radius: 4px;
+    position: relative;
+}
+
+.progress-text {
+    font-size: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: black;
+    transform: translate(-50%, -50%);
+}
