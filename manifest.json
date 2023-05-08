@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Life in Weeks",
+  "version": "1.0",
+  "description": "Visualize your life in weeks with this Chrome extension.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "assets/icon48.png"
+    }
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "48": "assets/icon48.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "popup.html"
+  }
+}
