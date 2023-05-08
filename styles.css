@@ -1,5 +1,5 @@
 body {
-    background-color: green;
+    background-color: black;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -8,6 +8,7 @@ body {
     height: 100vh;
     font-family: Arial, sans-serif;
     overflow: auto;
+    position: relative;
 }
 
 #app {
@@ -19,6 +20,21 @@ body {
 .input-container {
     display: none;
     margin-bottom: 1rem;
+}
+
+.change-birthday {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.change-birthday:hover {
+    background-color: black;
+    color: white;
 }
 
 label {

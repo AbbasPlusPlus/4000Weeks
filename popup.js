@@ -3,49 +3,53 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitButton = document.getElementById("submit-birthday");
   const lifeCanvas = document.getElementById("life-canvas");
   const ctx = lifeCanvas.getContext("2d");
+  const changeBirthdayButton = document.getElementById("change-birthday");
 
-const drawLife = (livedWeeks) => {
-  const width = 20;
-  const height = 20;
-  const padding = 2;
-  const rows = 50;
-  const columns = 80;
-  let count = 0;
+  changeBirthdayButton.addEventListener("click", () => {
+    document.getElementById("input-container").style.display = "block";
+  });
 
-  lifeCanvas.width = columns * (width + padding) - padding;
-  lifeCanvas.height = rows * (height + padding) - padding;
+  const drawLife = (livedWeeks) => {
+    const width = 20;
+    const height = 20;
+    const padding = 2;
+    const rows = 50;
+    const columns = 80;
+    let count = 0;
 
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      count++;
+    lifeCanvas.width = columns * (width + padding) - padding;
+    lifeCanvas.height = rows * (height + padding) - padding;
 
-      if (count <= livedWeeks) {
-        ctx.fillStyle = "red";
-      } else {
-        ctx.fillStyle = "black";
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 2;
-      }
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < columns; j++) {
+        count++;
 
-      ctx.fillRect(
-        j * (width + padding),
-        i * (height + padding),
-        width,
-        height
-      );
+        if (count <= livedWeeks) {
+          ctx.fillStyle = "white";
+        } else {
+          ctx.fillStyle = "black";
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 2;
+        }
 
-      if (count > livedWeeks) {
-        ctx.strokeRect(
+        ctx.fillRect(
           j * (width + padding),
           i * (height + padding),
           width,
           height
         );
+
+        if (count > livedWeeks) {
+          ctx.strokeRect(
+            j * (width + padding),
+            i * (height + padding),
+            width,
+            height
+          );
+        }
       }
     }
-  }
-};
-
+  };
 
   const calculateWeeksSinceBirth = (birthday) => {
     const now = new Date();
