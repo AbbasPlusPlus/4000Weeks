@@ -83,3 +83,24 @@ button:hover {
     color: black;
     transform: translate(-50%, -50%);
 }
+
+#navbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 30px 40px;
+}
+
+.nav-option {
+    border: 3px solid transparent;
+    border-radius: 4px;
+    padding: 10px 40px;
+    color: white;
+    font-size: 14px;
+
+}
+
+.nav-option.active {
+    border-color: white;
+    border-radius: 4px;
+
+}

@@ -10,6 +10,25 @@ document.addEventListener("DOMContentLoaded", () => {
   changeBirthdayButton.addEventListener("click", () => {
     document.getElementById("input-container").style.display = "block";
   });
+
+  document.querySelectorAll(".nav-option").forEach((option) => {
+    option.addEventListener("click", () => {
+      document
+        .querySelectorAll(".nav-option")
+        .forEach((o) => o.classList.remove("active"));
+      option.classList.add("active");
+      chrome.storage.local.set({ selectedOption: option.id });
+    });
+  });
+
+  chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
+    if (!selectedOption) {
+      selectedOption = "nav-life";
+      chrome.storage.local.set({ selectedOption });
+    }
+    document.getElementById(selectedOption).classList.add("active");
+  });
+
   const drawLife = (livedWeeks) => {
     const width = 14;
     const height = 14;
@@ -17,11 +36,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = 50;
     const columns = 80;
     let count = 0;
-    const offset = 2;
     const borderRadius = 2;
+    const margin = 2;
+    lifeCanvas.width = columns * (width + padding) + margin * 2 - padding;
+    lifeCanvas.height = rows * (height + padding) + margin * 2 - padding;
 
-    lifeCanvas.width = columns * (width + padding) - padding + offset;
-    lifeCanvas.height = rows * (height + padding) - padding + offset;
+    let xStart = margin;
+    let yStart = margin;
 
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
@@ -36,50 +57,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         ctx.beginPath();
-        ctx.moveTo(
-          j * (width + padding) + borderRadius,
-          i * (height + padding)
-        );
-        ctx.lineTo(
-          j * (width + padding) + width - borderRadius,
-          i * (height + padding)
-        );
+        ctx.moveTo(xStart + borderRadius, yStart);
+        ctx.lineTo(xStart + width - borderRadius, yStart);
         ctx.quadraticCurveTo(
-          j * (width + padding) + width,
-          i * (height + padding),
-          j * (width + padding) + width,
-          i * (height + padding) + borderRadius
+          xStart + width,
+          yStart,
+          xStart + width,
+          yStart + borderRadius
         );
-        ctx.lineTo(
-          j * (width + padding) + width,
-          i * (height + padding) + height - borderRadius
-        );
+        ctx.lineTo(xStart + width, yStart + height - borderRadius);
         ctx.quadraticCurveTo(
-          j * (width + padding) + width,
-          i * (height + padding) + height,
-          j * (width + padding) + width - borderRadius,
-          i * (height + padding) + height
+          xStart + width,
+          yStart + height,
+          xStart + width - borderRadius,
+          yStart + height
         );
-        ctx.lineTo(
-          j * (width + padding) + borderRadius,
-          i * (height + padding) + height
-        );
+        ctx.lineTo(xStart + borderRadius, yStart + height);
         ctx.quadraticCurveTo(
-          j * (width + padding),
-          i * (height + padding) + height,
-          j * (width + padding),
-          i * (height + padding) + height - borderRadius
+          xStart,
+          yStart + height,
+          xStart,
+          yStart + height - borderRadius
         );
-        ctx.lineTo(
-          j * (width + padding),
-          i * (height + padding) + borderRadius
-        );
-        ctx.quadraticCurveTo(
-          j * (width + padding),
-          i * (height + padding),
-          j * (width + padding) + borderRadius,
-          i * (height + padding)
-        );
+        ctx.lineTo(xStart, yStart + borderRadius);
+        ctx.quadraticCurveTo(xStart, yStart, xStart + borderRadius, yStart);
         ctx.closePath();
 
         if (count <= livedWeeks) {
@@ -88,7 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
           ctx.stroke();
           ctx.fill();
         }
+
+        xStart += width + padding; // Update xStart for the next square
       }
+
+      xStart = margin; // Reset xStart for the next row
+      yStart += height + padding; // Update yStart for the next row
     }
   };
 
