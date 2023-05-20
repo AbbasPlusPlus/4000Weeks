@@ -17,11 +17,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = 50;
     const columns = 80;
     let count = 0;
-
-    lifeCanvas.width = columns * (width + padding) - padding;
-    lifeCanvas.height = rows * (height + padding) - padding;
-
+    const offset = 2;
     const borderRadius = 2;
+
+    lifeCanvas.width = columns * (width + padding) - padding + offset;
+    lifeCanvas.height = rows * (height + padding) - padding + offset;
 
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
