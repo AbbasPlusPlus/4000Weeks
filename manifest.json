@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Life in Weeks",
+  "name": "4000 Weeks",
   "version": "1.0",
   "description": "Visualize your life in weeks with this Chrome extension.",
   "action": {
