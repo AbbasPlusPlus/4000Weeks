@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ctx = lifeCanvas.getContext("2d");
   // Handle click on "Change Birthday" button
   changeBirthdayButton.addEventListener("click", () => {
-    document.getElementById("input-container").style.display = "block";
+    inputContainer.style.display = "block";
   });
 
   // Function to draw squares
@@ -168,23 +168,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const minutes = Math.floor(timeDiff / (1000 * 60));
     return minutes;
   };
-  submitButton.addEventListener("click", () => {
-    const birthday = birthdayInput.value;
-    if (!birthday) {
-      return;
-    }
-    chrome.storage.local.set({ birthday }, () => {
-      chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
-        if (!selectedOption) selectedOption = "nav-life";
-        const { calculateUnits, config, maxUnits } =
-          optionsConfig[selectedOption];
-        const livedUnits = calculateUnits(birthday);
-        drawSquares(livedUnits, config);
-        updateProgressBar(livedUnits, maxUnits);
-        document.getElementById("input-container").style.display = "none";
-      });
-    });
-  });
+
+  const updateDisplay = (birthday, selectedOption) => {
+    const { calculateUnits, config, maxUnits } =
+      optionsConfig[selectedOption || "nav-life"];
+    const livedUnits = calculateUnits(birthday);
+    drawSquares(livedUnits, config);
+    updateProgressBar(livedUnits, maxUnits);
+    inputContainer.style.display = birthday ? "none" : "block";
+    changeBirthdayButton.style.display =
+      selectedOption === "nav-life" ? "block" : "none";
+  };
+
+  const updateSelectedOption = (selectedOption) => {
+    document
+      .querySelectorAll(".nav-option")
+      .forEach((o) => o.classList.remove("active"));
+    document.getElementById(selectedOption).classList.add("active");
+    changeBirthdayButton.style.display =
+      selectedOption === "nav-life" ? "block" : "none";
+    chrome.storage.local.set({ selectedOption });
+  };
 
   // Configuration object for each option
   const optionsConfig = {
@@ -242,37 +246,39 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
+  submitButton.addEventListener("click", () => {
+    const birthday = birthdayInput.value;
+    if (!birthday) {
+      return;
+    }
+    chrome.storage.local.set({ birthday }, () => {
+      chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
+        updateDisplay(birthday, selectedOption);
+      });
+    });
+  });
+
   // Get saved birthday and update display accordingly
   chrome.storage.local.get(
     ["birthday", "selectedOption"],
     ({ birthday, selectedOption = "nav-life" }) => {
       if (birthday) {
-        const { config, calculateUnits, maxUnits } = optionsConfig[selectedOption];
-
-        const livedUnits = calculateUnits(birthday);
-        drawSquares(livedUnits, config);
-        document.getElementById("input-container").style.display = "none";
-        updateProgressBar(livedUnits, maxUnits);
+        updateDisplay(birthday, selectedOption);
       } else {
-        document.getElementById("input-container").style.display = "block";
+        inputContainer.style.display = "block";
       }
     }
   );
+
   // Get selected option and update display accordingly
   chrome.storage.local.get(
     ["selectedOption"],
     ({ selectedOption = "nav-life" }) => {
-      chrome.storage.local.set({ selectedOption });
-      document.getElementById(selectedOption).classList.add("active");
+      updateSelectedOption(selectedOption);
 
       chrome.storage.local.get(["birthday"], ({ birthday }) => {
         if (birthday) {
-          const { config, calculateUnits, maxUnits } = optionsConfig[selectedOption];
-
-          const livedUnits = calculateUnits(birthday);
-          drawSquares(livedUnits, config);
-          document.getElementById("input-container").style.display = "none";
-          updateProgressBar(livedUnits, maxUnits);
+          updateDisplay(birthday, selectedOption);
         }
       });
     }
@@ -280,34 +286,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll(".nav-option").forEach((option) => {
     option.addEventListener("click", () => {
-      // remove active class from all optionsConfig
+      // remove active class from all options
       document
         .querySelectorAll(".nav-option")
         .forEach((o) => o.classList.remove("active"));
+
       // add active class to clicked option
       option.classList.add("active");
+
       // store selected option
-      chrome.storage.local.set({ selectedOption: option.id });
-
-      // Get saved birthday and update display accordingly
-      chrome.storage.local.get(
-        ["birthday", "selectedOption"],
-        ({ birthday, selectedOption }) => {
+      chrome.storage.local.set({ selectedOption: option.id }, () => {
+        // Get saved birthday and update display accordingly
+        chrome.storage.local.get(["birthday"], ({ birthday }) => {
           if (birthday) {
-            // Determine the config and max units based on the selected option
-            const { config, calculateUnits, maxUnits } =
-              optionsConfig[selectedOption || "nav-life"];
-
-            const livedUnits = calculateUnits(birthday);
-            drawSquares(livedUnits, config);
-            updateProgressBar(livedUnits, maxUnits); // Update progress bar
-
-            document.getElementById("input-container").style.display = "none";
+            updateDisplay(birthday, option.id);
           } else {
-            document.getElementById("input-container").style.display = "block";
+            inputContainer.style.display = "block";
           }
-        }
-      );
+        });
+      });
     });
   });
 });
