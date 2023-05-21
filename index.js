@@ -1,73 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Setting up constants and variables
-  const birthdayInput = document.getElementById("birthday");
-  const submitButton = document.getElementById("submit-birthday");
-  const lifeCanvas = document.getElementById("life-canvas");
+  const ids = [
+    "birthday",
+    "submit-birthday",
+    "life-canvas",
+    "change-birthday",
+    "progress-bar",
+    "progress-text",
+    "input-container",
+  ];
+  const [
+    birthdayInput,
+    submitButton,
+    lifeCanvas,
+    changeBirthdayButton,
+    progressBar,
+    progressText,
+    inputContainer,
+  ] = ids.map((id) => document.getElementById(id));
   const ctx = lifeCanvas.getContext("2d");
-  const changeBirthdayButton = document.getElementById("change-birthday");
-  const progressBar = document.getElementById("progress-bar");
-  const progressText = document.getElementById("progress-text");
-
   // Handle click on "Change Birthday" button
   changeBirthdayButton.addEventListener("click", () => {
     document.getElementById("input-container").style.display = "block";
   });
-
-  // Function to draw life
-  const drawLife = (livedWeeks) => {
-    const config = {
-      width: 12,
-      height: 12,
-      padding: 4,
-      rows: 50,
-      columns: 80,
-      borderRadius: 2,
-      margin: 2,
-    };
-    drawSquares(livedWeeks, config);
-  };
-
-  // Function to draw year
-  const drawYear = (livedDays) => {
-    const config = {
-      width: 22,
-      height: 22,
-      padding: 4,
-      rows: 10,
-      columns: 40,
-      borderRadius: 4,
-      margin: 2,
-    };
-    drawSquares(livedDays, config);
-  };
-
-  // Function to draw month
-  const drawMonth = (livedHours) => {
-    const config = {
-      width: 16,
-      height: 16,
-      padding: 4,
-      rows: 15,
-      columns: 50,
-      borderRadius: 3,
-      margin: 2,
-    };
-    drawSquares(livedHours, config);
-  };
-
-  // Function to draw day
-  const drawDay = (livedMinutes) => {
-    const config = {
-      width: 16,
-      height: 16,
-      padding: 4,
-      rows: 24,
-      columns: 60,
-      borderRadius: 2,
-      margin: 1,
-    };
-    drawSquares(livedMinutes, config);
-  };
 
   // Function to draw squares
   function drawSquares(livedUnits, config) {
@@ -214,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const minutes = Math.floor(timeDiff / (1000 * 60));
     return minutes;
   };
-
   submitButton.addEventListener("click", () => {
     const birthday = birthdayInput.value;
     if (!birthday) {
@@ -222,68 +175,112 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     chrome.storage.local.set({ birthday }, () => {
       chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
-        if (selectedOption === "nav-life") {
-          const livedWeeks = calculateWeeksSinceBirth(birthday);
-          drawLife(livedWeeks);
-          updateProgressBar(livedWeeks, 4000); // Update progress bar for life
-          document.getElementById("input-container").style.display = "none";
-        } else if (selectedOption === "nav-month") {
-          const livedHours = calculateHoursSinceStartOfMonth();
-          drawMonth(livedHours);
-          updateProgressBar(livedHours, 744); // Update progress bar for month (24 hours * 31 days)
-        } else if (selectedOption === "nav-day") {
-          const livedMinutes = calculateMinutesSinceMidnight();
-          drawDay(livedMinutes);
-          updateProgressBar(livedMinutes, 1440); // Update progress bar for day (24 hours * 60 minutes)
-        }
+        if (!selectedOption) selectedOption = "nav-life";
+        const { calculateUnits, config, maxUnits } =
+          optionsConfig[selectedOption];
+        const livedUnits = calculateUnits(birthday);
+        drawSquares(livedUnits, config);
+        updateProgressBar(livedUnits, maxUnits);
+        document.getElementById("input-container").style.display = "none";
       });
     });
   });
 
+  // Configuration object for each option
+  const optionsConfig = {
+    "nav-life": {
+      config: {
+        width: 12,
+        height: 12,
+        padding: 4,
+        rows: 50,
+        columns: 80,
+        borderRadius: 2,
+        margin: 2,
+      },
+      maxUnits: 4000,
+      calculateUnits: calculateWeeksSinceBirth,
+    },
+    "nav-year": {
+      config: {
+        width: 22,
+        height: 22,
+        padding: 4,
+        rows: 10,
+        columns: 40,
+        borderRadius: 4,
+        margin: 2,
+      },
+      maxUnits: 365,
+      calculateUnits: calculateDaysSinceStartOfYear,
+    },
+    "nav-month": {
+      config: {
+        width: 16,
+        height: 16,
+        padding: 4,
+        rows: 15,
+        columns: 50,
+        borderRadius: 3,
+        margin: 2,
+      },
+      maxUnits: 744,
+      calculateUnits: calculateHoursSinceStartOfMonth,
+    },
+    "nav-day": {
+      config: {
+        width: 16,
+        height: 16,
+        padding: 4,
+        rows: 24,
+        columns: 60,
+        borderRadius: 2,
+        margin: 1,
+      },
+      maxUnits: 1440,
+      calculateUnits: calculateMinutesSinceMidnight,
+    },
+  };
+
   // Get saved birthday and update display accordingly
-  chrome.storage.local.get(["birthday"], ({ birthday }) => {
-    if (birthday) {
-      const livedWeeks = calculateWeeksSinceBirth(birthday);
-      drawLife(livedWeeks);
-      document.getElementById("input-container").style.display = "none";
-      updateProgressBar(livedWeeks);
-    } else {
-      document.getElementById("input-container").style.display = "block";
-    }
-  });
+  chrome.storage.local.get(
+    ["birthday", "selectedOption"],
+    ({ birthday, selectedOption = "nav-life" }) => {
+      if (birthday) {
+        const { config, calculateUnits, maxUnits } = optionsConfig[selectedOption];
 
+        const livedUnits = calculateUnits(birthday);
+        drawSquares(livedUnits, config);
+        document.getElementById("input-container").style.display = "none";
+        updateProgressBar(livedUnits, maxUnits);
+      } else {
+        document.getElementById("input-container").style.display = "block";
+      }
+    }
+  );
   // Get selected option and update display accordingly
-  chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
-    if (!selectedOption) {
-      selectedOption = "nav-life";
+  chrome.storage.local.get(
+    ["selectedOption"],
+    ({ selectedOption = "nav-life" }) => {
       chrome.storage.local.set({ selectedOption });
-    }
-    document.getElementById(selectedOption).classList.add("active");
+      document.getElementById(selectedOption).classList.add("active");
 
-    if (selectedOption === "nav-year") {
-      const livedDays = calculateDaysSinceStartOfYear();
-      drawYear(livedDays);
-      updateProgressBar(livedDays, 365); // Update progress bar for year
-    } else if (selectedOption === "nav-month") {
-      const livedHours = calculateHoursSinceStartOfMonth();
-      drawMonth(livedHours);
-      updateProgressBar(livedHours, 744); // Update progress bar for month (24 hours * 31 days)
-    } else if (selectedOption === "nav-day") {
-      const livedMinutes = calculateMinutesSinceMidnight();
-      drawDay(livedMinutes);
-      updateProgressBar(livedMinutes, 1440); // Update progress bar for day (24 hours * 60 minutes)
-    } else {
-      const livedWeeks = calculateWeeksSinceBirth(birthday);
-      drawLife(livedWeeks);
-      document.getElementById("input-container").style.display = "none";
-      updateProgressBar(livedWeeks);
-    }
-  });
+      chrome.storage.local.get(["birthday"], ({ birthday }) => {
+        if (birthday) {
+          const { config, calculateUnits, maxUnits } = optionsConfig[selectedOption];
 
-  // Handle click on navigation options
+          const livedUnits = calculateUnits(birthday);
+          drawSquares(livedUnits, config);
+          document.getElementById("input-container").style.display = "none";
+          updateProgressBar(livedUnits, maxUnits);
+        }
+      });
+    }
+  );
+
   document.querySelectorAll(".nav-option").forEach((option) => {
     option.addEventListener("click", () => {
-      // remove active class from all options
+      // remove active class from all optionsConfig
       document
         .querySelectorAll(".nav-option")
         .forEach((o) => o.classList.remove("active"));
@@ -297,24 +294,15 @@ document.addEventListener("DOMContentLoaded", () => {
         ["birthday", "selectedOption"],
         ({ birthday, selectedOption }) => {
           if (birthday) {
-            if (selectedOption === "nav-life" || !selectedOption) {
-              const livedWeeks = calculateWeeksSinceBirth(birthday);
-              drawLife(livedWeeks);
-              updateProgressBar(livedWeeks, 4000); // Update progress bar for life
-              document.getElementById("input-container").style.display = "none";
-            } else if (selectedOption === "nav-year") {
-              const livedDays = calculateDaysSinceStartOfYear();
-              drawYear(livedDays);
-              updateProgressBar(livedDays, 365); // Update progress bar for year
-            } else if (selectedOption === "nav-month") {
-              const livedHours = calculateHoursSinceStartOfMonth();
-              drawMonth(livedHours);
-              updateProgressBar(livedHours, 744); // Update progress bar for month (24 hours * 31 days)
-            } else if (selectedOption === "nav-day") {
-              const livedMinutes = calculateMinutesSinceMidnight();
-              drawDay(livedMinutes);
-              updateProgressBar(livedMinutes, 1440); // Update progress bar for day (24 hours * 60 minutes)
-            }
+            // Determine the config and max units based on the selected option
+            const { config, calculateUnits, maxUnits } =
+              optionsConfig[selectedOption || "nav-life"];
+
+            const livedUnits = calculateUnits(birthday);
+            drawSquares(livedUnits, config);
+            updateProgressBar(livedUnits, maxUnits); // Update progress bar
+
+            document.getElementById("input-container").style.display = "none";
           } else {
             document.getElementById("input-container").style.display = "block";
           }
