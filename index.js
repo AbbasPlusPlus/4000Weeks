@@ -197,8 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
         width: 12,
         height: 12,
         padding: 4,
-        rows: 50,
-        columns: 80,
+        rows: 40,
+        columns: 100,
         borderRadius: 2,
         margin: 2,
       },
@@ -251,12 +251,43 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!birthday) {
       return;
     }
+
+    const currentDate = new Date();
+    const selectedDate = new Date(birthday);
+
+    // Check if the selected date is in the future
+    if (selectedDate > currentDate) {
+      displayErrorMessage("Selected date cannot be in the future.");
+      return;
+    }
+
+    // Check if the selected date is older than 80 years
+    const maxAllowedDate = new Date();
+    maxAllowedDate.setFullYear(maxAllowedDate.getFullYear() - 80);
+    if (selectedDate < maxAllowedDate) {
+      displayErrorMessage("Selected date cannot be older than 80 years.");
+      return;
+    }
+
+    hideErrorMessage();
     chrome.storage.local.set({ birthday }, () => {
       chrome.storage.local.get(["selectedOption"], ({ selectedOption }) => {
         updateDisplay(birthday, selectedOption);
       });
     });
   });
+
+  function displayErrorMessage(message) {
+    const errorContainer = document.getElementById("error-container");
+    const errorMessage = document.getElementById("error-message");
+    errorMessage.textContent = message;
+    errorContainer.style.display = "block";
+  }
+
+  function hideErrorMessage() {
+    const errorContainer = document.getElementById("error-container");
+    errorContainer.style.display = "none";
+  }
 
   // Get saved birthday and update display accordingly
   chrome.storage.local.get(
